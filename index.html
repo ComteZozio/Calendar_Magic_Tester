@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mémoire · Calendrier</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0e0e;
+    --bg2: #161616;
+    --bg3: #1e1e1e;
+    --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.18);
+    --text: #f0ede6;
+    --text-muted: #888;
+    --text-dim: #555;
+    --accent: #d4a853;
+    --accent-dim: rgba(212,168,83,0.12);
+    --green: #6ab04c;
+    --green-dim: rgba(106,176,76,0.12);
+    --red: #e05c5c;
+    --red-dim: rgba(224,92,92,0.12);
+    --radius: 10px;
+    --mono: 'DM Mono', monospace;
+    --serif: 'Fraunces', serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+
+  /* subtle dot grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 28px 28px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 480px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    animation: fadeUp 0.5s ease both;
+  }
+  .header h1 {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: 2rem;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    line-height: 1.1;
+  }
+  .header h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+  .header p {
+    margin-top: 0.4rem;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  /* Stats */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 1.5rem;
+    animation: fadeUp 0.5s 0.05s ease both;
+  }
+  .stat {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.8rem;
+    text-align: center;
+    transition: border-color 0.2s;
+  }
+  .stat:hover { border-color: var(--border-strong); }
+  .stat-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 4px;
+  }
+  .stat-value {
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--text);
+    display: block;
+    line-height: 1;
+  }
+  .stat-value.flash {
+    animation: flash 0.4s ease;
+  }
+
+  /* Date card */
+  .date-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    margin-bottom: 1.25rem;
+    animation: fadeUp 0.5s 0.1s ease both;
+    transition: border-color 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .date-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(212,168,83,0.4), transparent);
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .date-card.active::after { opacity: 1; }
+
+  .date-prompt {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+  .date-day {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 3rem;
+    font-weight: 300;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 0.2rem;
+    letter-spacing: -0.02em;
+  }
+  .date-month {
+    font-family: var(--serif);
+    font-size: 1.4rem;
+    font-weight: 300;
+    color: var(--text-muted);
+    margin-bottom: 0.4rem;
+  }
+  .date-year {
+    font-size: 13px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+  }
+
+  /* Days grid */
+  .days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    margin-bottom: 1rem;
+    animation: fadeUp 0.5s 0.15s ease both;
+  }
+  .day-btn {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.65rem 0.2rem;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
+    text-align: center;
+  }
+  .day-btn:hover:not(:disabled) {
+    background: var(--bg3);
+    border-color: var(--border-strong);
+    color: var(--text);
+  }
+  .day-btn:active:not(:disabled) { transform: scale(0.93); }
+  .day-btn.correct {
+    background: var(--green-dim);
+    border-color: var(--green);
+    color: var(--green);
+    font-weight: 500;
+  }
+  .day-btn.wrong {
+    background: var(--red-dim);
+    border-color: var(--red);
+    color: var(--red);
+  }
+  .day-btn.reveal {
+    background: var(--green-dim);
+    border-color: var(--green);
+    color: var(--green);
+    font-weight: 500;
+  }
+  .day-btn:disabled { cursor: default; }
+
+  /* Feedback */
+  .feedback {
+    text-align: center;
+    font-size: 13px;
+    min-height: 28px;
+    margin-bottom: 1rem;
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 300;
+    font-size: 15px;
+    transition: opacity 0.2s;
+  }
+  .feedback.ok { color: var(--green); }
+  .feedback.ko { color: var(--red); }
+
+  /* Next button */
+  .next-btn {
+    width: 100%;
+    padding: 0.8rem;
+    background: transparent;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    color: var(--text-muted);
+    font-family: var(--mono);
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    animation: fadeUp 0.5s 0.2s ease both;
+    letter-spacing: 0.04em;
+  }
+  .next-btn:hover {
+    background: var(--bg3);
+    color: var(--text);
+    border-color: var(--accent);
+  }
+
+  /* Settings panel */
+  .settings {
+    margin-top: 1.5rem;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    animation: fadeUp 0.5s 0.25s ease both;
+  }
+  .settings summary {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .settings summary::before {
+    content: '▸';
+    transition: transform 0.2s;
+    font-size: 9px;
+  }
+  .settings[open] summary::before { transform: rotate(90deg); }
+  .settings-body {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+  .setting-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .setting-row label {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    min-width: 80px;
+  }
+  .setting-row input[type=range] {
+    flex: 1;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+  .setting-row span {
+    font-size: 12px;
+    color: var(--text);
+    min-width: 36px;
+    text-align: right;
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    height: 2px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    animation: fadeUp 0.5s 0.08s ease both;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  /* Keyframes */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes flash {
+    0%   { color: var(--accent); transform: scale(1.15); }
+    100% { color: var(--text); transform: scale(1); }
+  }
+  @keyframes popIn {
+    0%   { transform: scale(0.85); opacity: 0; }
+    60%  { transform: scale(1.05); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .pop { animation: popIn 0.3s ease both; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <h1>Mémoire &amp; <em>Calendrier</em></h1>
+    <p>Entraînement — Jour de la semaine</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <span class="stat-label">Score</span>
+      <span class="stat-value" id="score">0</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Série</span>
+      <span class="stat-value" id="streak">0</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Record</span>
+      <span class="stat-value" id="best">0</span>
+    </div>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+
+  <div class="date-card" id="date-card">
+    <p class="date-prompt">Quel jour de la semaine&nbsp;?</p>
+    <p class="date-day" id="d-day">—</p>
+    <p class="date-month" id="d-month"></p>
+    <p class="date-year" id="d-year"></p>
+  </div>
+
+  <div class="days-grid" id="days-grid"></div>
+
+  <div class="feedback" id="feedback">&nbsp;</div>
+
+  <button class="next-btn" id="next-btn">Nouvelle date →</button>
+
+  <details class="settings" id="settings">
+    <summary>Réglages</summary>
+    <div class="settings-body">
+      <div class="setting-row">
+        <label>Année min</label>
+        <input type="range" id="yr-from" min="1800" max="2020" step="10" value="1950">
+        <span id="yr-from-lbl">1950</span>
+      </div>
+      <div class="setting-row">
+        <label>Année max</label>
+        <input type="range" id="yr-to" min="1810" max="2030" step="10" value="2030">
+        <span id="yr-to-lbl">2030</span>
+      </div>
+    </div>
+  </details>
+
+</div>
+
+<script>
+const JOURS_COURT = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+const JOURS_LONG  = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+const MOIS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+
+let score = 0, streak = 0, best = 0, total = 0;
+let currentDay = -1, answered = false;
+
+const elScore    = document.getElementById('score');
+const elStreak   = document.getElementById('streak');
+const elBest     = document.getElementById('best');
+const elProgress = document.getElementById('progress');
+const elFeedback = document.getElementById('feedback');
+const elDateCard = document.getElementById('date-card');
+const elDay      = document.getElementById('d-day');
+const elMonth    = document.getElementById('d-month');
+const elYear     = document.getElementById('d-year');
+const elNext     = document.getElementById('next-btn');
+const grid       = document.getElementById('days-grid');
+const yrFrom     = document.getElementById('yr-from');
+const yrTo       = document.getElementById('yr-to');
+const yrFromLbl  = document.getElementById('yr-from-lbl');
+const yrToLbl    = document.getElementById('yr-to-lbl');
+
+yrFrom.addEventListener('input', () => { yrFromLbl.textContent = yrFrom.value; });
+yrTo.addEventListener('input',   () => { yrToLbl.textContent   = yrTo.value; });
+
+// Build day buttons
+JOURS_COURT.forEach((j, i) => {
+  const btn = document.createElement('button');
+  btn.className = 'day-btn';
+  btn.textContent = j;
+  btn.addEventListener('click', () => answer(i, btn));
+  grid.appendChild(btn);
+});
+
+function randomDate() {
+  const yMin = parseInt(yrFrom.value);
+  const yMax = parseInt(yrTo.value);
+  const y = yMin + Math.floor(Math.random() * (yMax - yMin + 1));
+  const m = Math.floor(Math.random() * 12);
+  const d = 1 + Math.floor(Math.random() * new Date(y, m + 1, 0).getDate());
+  return new Date(y, m, d);
+}
+
+function newQuestion() {
+  answered = false;
+  elFeedback.textContent = '\u00a0';
+  elFeedback.className = 'feedback';
+  elDateCard.classList.remove('active');
+  grid.querySelectorAll('.day-btn').forEach(b => {
+    b.className = 'day-btn';
+    b.disabled = false;
+  });
+
+  const date = randomDate();
+  currentDay = date.getDay();
+  elDay.textContent   = date.getDate();
+  elMonth.textContent = MOIS[date.getMonth()];
+  elYear.textContent  = date.getFullYear();
+
+  elDay.classList.remove('pop');
+  void elDay.offsetWidth;
+  elDay.classList.add('pop');
+
+  setTimeout(() => elDateCard.classList.add('active'), 50);
+}
+
+function flashEl(el) {
+  el.classList.remove('flash');
+  void el.offsetWidth;
+  el.classList.add('flash');
+}
+
+function answer(idx, btn) {
+  if (answered) return;
+  answered = true;
+  total++;
+
+  grid.querySelectorAll('.day-btn').forEach(b => b.disabled = true);
+
+  if (idx === currentDay) {
+    btn.className = 'day-btn correct';
+    score++;
+    streak++;
+    if (streak > best) { best = streak; elBest.textContent = best; flashEl(elBest); }
+    elFeedback.innerHTML = '✓ &nbsp;Correct !';
+    elFeedback.className = 'feedback ok';
+  } else {
+    btn.className = 'day-btn wrong';
+    streak = 0;
+    grid.querySelectorAll('.day-btn')[currentDay].className = 'day-btn reveal';
+    elFeedback.innerHTML = '✗ &nbsp;C\'était&nbsp;<strong>' + JOURS_LONG[currentDay] + '</strong>';
+    elFeedback.className = 'feedback ko';
+  }
+
+  elScore.textContent  = score;
+  elStreak.textContent = streak;
+  flashEl(elScore);
+
+  const pct = total > 0 ? Math.round((score / total) * 100) : 0;
+  elProgress.style.width = pct + '%';
+}
+
+elNext.addEventListener('click', newQuestion);
+newQuestion();
+</script>
+</body>
+</html>
