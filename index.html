@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mémoire · Calendrier</title>
+<title>Mémoire · Entraînement</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,300&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -23,6 +23,8 @@
     --green-dim: rgba(106,176,76,0.12);
     --red: #e05c5c;
     --red-dim: rgba(224,92,92,0.12);
+    --blue: #5b9bd5;
+    --blue-dim: rgba(91,155,213,0.12);
     --radius: 10px;
     --mono: 'DM Mono', monospace;
     --serif: 'Fraunces', serif;
@@ -36,16 +38,15 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 2rem 1rem;
+    justify-content: flex-start;
+    padding: 2.5rem 1rem 3rem;
   }
 
-  /* subtle dot grid background */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
-    background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-image: radial-gradient(circle, rgba(255,255,255,0.035) 1px, transparent 1px);
     background-size: 28px 28px;
     pointer-events: none;
     z-index: 0;
@@ -55,13 +56,13 @@
     position: relative;
     z-index: 1;
     width: 100%;
-    max-width: 480px;
+    max-width: 500px;
   }
 
   /* Header */
   .header {
     text-align: center;
-    margin-bottom: 2.5rem;
+    margin-bottom: 2rem;
     animation: fadeUp 0.5s ease both;
   }
   .header h1 {
@@ -72,10 +73,7 @@
     color: var(--text);
     line-height: 1.1;
   }
-  .header h1 em {
-    font-style: italic;
-    color: var(--accent);
-  }
+  .header h1 em { font-style: italic; color: var(--accent); }
   .header p {
     margin-top: 0.4rem;
     font-size: 11px;
@@ -84,19 +82,47 @@
     text-transform: uppercase;
   }
 
+  /* Module tabs */
+  .tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 1.5rem;
+    animation: fadeUp 0.5s 0.03s ease both;
+  }
+  .tab-btn {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.7rem 1rem;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    letter-spacing: 0.04em;
+  }
+  .tab-btn:hover { border-color: var(--border-strong); color: var(--text-muted); }
+  .tab-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-dim);
+  }
+
   /* Stats */
   .stats {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 8px;
-    margin-bottom: 1.5rem;
-    animation: fadeUp 0.5s 0.05s ease both;
+    margin-bottom: 1.25rem;
+    animation: fadeUp 0.5s 0.06s ease both;
   }
   .stat {
     background: var(--bg2);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 0.8rem;
+    padding: 0.75rem;
     text-align: center;
     transition: border-color 0.2s;
   }
@@ -110,22 +136,37 @@
     margin-bottom: 4px;
   }
   .stat-value {
-    font-size: 24px;
+    font-size: 22px;
     font-weight: 500;
     color: var(--text);
     display: block;
     line-height: 1;
   }
-  .stat-value.flash {
-    animation: flash 0.4s ease;
+  .stat-value.flash { animation: flash 0.4s ease; }
+
+  /* Progress bar */
+  .progress-bar {
+    height: 2px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    animation: fadeUp 0.5s 0.08s ease both;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+    width: 0%;
   }
 
-  /* Date card */
-  .date-card {
+  /* Generic question card */
+  .q-card {
     background: var(--bg2);
     border: 1px solid var(--border);
     border-radius: 16px;
-    padding: 2.5rem 2rem;
+    padding: 2.2rem 2rem;
     text-align: center;
     margin-bottom: 1.25rem;
     animation: fadeUp 0.5s 0.1s ease both;
@@ -133,7 +174,7 @@
     position: relative;
     overflow: hidden;
   }
-  .date-card::after {
+  .q-card::after {
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0;
@@ -142,15 +183,17 @@
     opacity: 0;
     transition: opacity 0.4s;
   }
-  .date-card.active::after { opacity: 1; }
+  .q-card.active::after { opacity: 1; }
 
-  .date-prompt {
+  .q-prompt {
     font-size: 10px;
     color: var(--text-dim);
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    margin-bottom: 1rem;
+    margin-bottom: 1.1rem;
   }
+
+  /* --- MODULE 1 : Calendrier --- */
   .date-day {
     font-family: var(--serif);
     font-style: italic;
@@ -163,18 +206,13 @@
   }
   .date-month {
     font-family: var(--serif);
-    font-size: 1.4rem;
+    font-size: 1.35rem;
     font-weight: 300;
     color: var(--text-muted);
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.3rem;
   }
-  .date-year {
-    font-size: 13px;
-    color: var(--text-dim);
-    letter-spacing: 0.1em;
-  }
+  .date-year { font-size: 13px; color: var(--text-dim); letter-spacing: 0.1em; }
 
-  /* Days grid */
   .days-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -186,7 +224,7 @@
     background: var(--bg2);
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 0.65rem 0.2rem;
+    padding: 0.6rem 0.1rem;
     font-family: var(--mono);
     font-size: 12px;
     font-weight: 400;
@@ -195,42 +233,81 @@
     transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
     text-align: center;
   }
-  .day-btn:hover:not(:disabled) {
-    background: var(--bg3);
-    border-color: var(--border-strong);
-    color: var(--text);
-  }
-  .day-btn:active:not(:disabled) { transform: scale(0.93); }
-  .day-btn.correct {
-    background: var(--green-dim);
-    border-color: var(--green);
-    color: var(--green);
-    font-weight: 500;
-  }
-  .day-btn.wrong {
-    background: var(--red-dim);
-    border-color: var(--red);
-    color: var(--red);
-  }
-  .day-btn.reveal {
-    background: var(--green-dim);
-    border-color: var(--green);
-    color: var(--green);
-    font-weight: 500;
-  }
+  .day-btn:hover:not(:disabled) { background: var(--bg3); border-color: var(--border-strong); color: var(--text); }
+  .day-btn:active:not(:disabled) { transform: scale(0.92); }
+  .day-btn.correct { background: var(--green-dim); border-color: var(--green); color: var(--green); font-weight: 500; }
+  .day-btn.wrong   { background: var(--red-dim);   border-color: var(--red);   color: var(--red); }
+  .day-btn.reveal  { background: var(--green-dim); border-color: var(--green); color: var(--green); font-weight: 500; }
   .day-btn:disabled { cursor: default; }
+
+  /* --- MODULE 2 : Racine cubique --- */
+  .cube-number {
+    font-family: var(--serif);
+    font-size: 3.6rem;
+    font-weight: 300;
+    color: var(--text);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.3rem;
+  }
+  .cube-sup {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+  }
+
+  .cube-input-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 1rem;
+    animation: fadeUp 0.5s 0.15s ease both;
+  }
+  .cube-input {
+    flex: 1;
+    background: var(--bg2);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    padding: 0.8rem 1rem;
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--text);
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+    -moz-appearance: textfield;
+  }
+  .cube-input::-webkit-outer-spin-button,
+  .cube-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .cube-input:focus { border-color: var(--accent); }
+  .cube-input.ok    { border-color: var(--green); background: var(--green-dim); color: var(--green); }
+  .cube-input.ko    { border-color: var(--red);   background: var(--red-dim);   color: var(--red); }
+
+  .check-btn {
+    background: transparent;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    padding: 0.8rem 1.2rem;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .check-btn:hover { background: var(--bg3); color: var(--text); border-color: var(--accent); }
 
   /* Feedback */
   .feedback {
     text-align: center;
-    font-size: 13px;
     min-height: 28px;
     margin-bottom: 1rem;
     font-family: var(--serif);
     font-style: italic;
     font-weight: 300;
     font-size: 15px;
-    transition: opacity 0.2s;
   }
   .feedback.ok { color: var(--green); }
   .feedback.ko { color: var(--red); }
@@ -250,13 +327,9 @@
     animation: fadeUp 0.5s 0.2s ease both;
     letter-spacing: 0.04em;
   }
-  .next-btn:hover {
-    background: var(--bg3);
-    color: var(--text);
-    border-color: var(--accent);
-  }
+  .next-btn:hover { background: var(--bg3); color: var(--text); border-color: var(--accent); }
 
-  /* Settings panel */
+  /* Settings */
   .settings {
     margin-top: 1.5rem;
     background: var(--bg2);
@@ -266,73 +339,23 @@
     animation: fadeUp 0.5s 0.25s ease both;
   }
   .settings summary {
-    font-size: 11px;
-    color: var(--text-dim);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    cursor: pointer;
-    user-select: none;
-    list-style: none;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    font-size: 11px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase;
+    cursor: pointer; user-select: none; list-style: none; display: flex; align-items: center; gap: 6px;
   }
-  .settings summary::before {
-    content: '▸';
-    transition: transform 0.2s;
-    font-size: 9px;
-  }
+  .settings summary::before { content: '▸'; transition: transform 0.2s; font-size: 9px; }
   .settings[open] summary::before { transform: rotate(90deg); }
-  .settings-body {
-    margin-top: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-  }
-  .setting-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .setting-row label {
-    font-size: 11px;
-    color: var(--text-muted);
-    white-space: nowrap;
-    min-width: 80px;
-  }
-  .setting-row input[type=range] {
-    flex: 1;
-    accent-color: var(--accent);
-    cursor: pointer;
-  }
-  .setting-row span {
-    font-size: 12px;
-    color: var(--text);
-    min-width: 36px;
-    text-align: right;
-  }
+  .settings-body { margin-top: 1rem; display: flex; flex-direction: column; gap: 0.8rem; }
+  .setting-row { display: flex; align-items: center; gap: 12px; }
+  .setting-row label { font-size: 11px; color: var(--text-muted); white-space: nowrap; min-width: 80px; }
+  .setting-row input[type=range] { flex: 1; accent-color: var(--accent); cursor: pointer; }
+  .setting-row span { font-size: 12px; color: var(--text); min-width: 36px; text-align: right; }
 
-  /* Progress bar */
-  .progress-bar {
-    height: 2px;
-    background: var(--border);
-    border-radius: 2px;
-    margin-bottom: 1.5rem;
-    overflow: hidden;
-    animation: fadeUp 0.5s 0.08s ease both;
-  }
-  .progress-fill {
-    height: 100%;
-    background: var(--accent);
-    border-radius: 2px;
-    transition: width 0.4s ease;
-    width: 0%;
-  }
+  /* Hidden utility */
+  .hidden { display: none !important; }
 
-  /* Keyframes */
   @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
   @keyframes flash {
     0%   { color: var(--accent); transform: scale(1.15); }
@@ -347,168 +370,276 @@
 </style>
 </head>
 <body>
-
 <div class="container">
 
   <div class="header">
-    <h1>Mémoire &amp; <em>Calendrier</em></h1>
-    <p>Entraînement — Jour de la semaine</p>
+    <h1>Mémoire &amp; <em>Calcul</em></h1>
+    <p>Entraînement mental</p>
   </div>
 
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" id="tab-cal" onclick="switchModule('cal')">📅 &nbsp;Jour de la semaine</button>
+    <button class="tab-btn" id="tab-cube" onclick="switchModule('cube')">∛ &nbsp;Racine cubique</button>
+  </div>
+
+  <!-- Stats (shared) -->
   <div class="stats">
-    <div class="stat">
-      <span class="stat-label">Score</span>
-      <span class="stat-value" id="score">0</span>
-    </div>
-    <div class="stat">
-      <span class="stat-label">Série</span>
-      <span class="stat-value" id="streak">0</span>
-    </div>
-    <div class="stat">
-      <span class="stat-label">Record</span>
-      <span class="stat-value" id="best">0</span>
-    </div>
+    <div class="stat"><span class="stat-label">Score</span><span class="stat-value" id="score">0</span></div>
+    <div class="stat"><span class="stat-label">Série</span><span class="stat-value" id="streak">0</span></div>
+    <div class="stat"><span class="stat-label">Record</span><span class="stat-value" id="best">0</span></div>
   </div>
 
   <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
 
-  <div class="date-card" id="date-card">
-    <p class="date-prompt">Quel jour de la semaine&nbsp;?</p>
-    <p class="date-day" id="d-day">—</p>
-    <p class="date-month" id="d-month"></p>
-    <p class="date-year" id="d-year"></p>
+  <!-- ═══ MODULE 1 : Calendrier ═══ -->
+  <div id="mod-cal">
+    <div class="q-card" id="date-card">
+      <p class="q-prompt">Quel jour de la semaine&nbsp;?</p>
+      <p class="date-day" id="d-day">—</p>
+      <p class="date-month" id="d-month"></p>
+      <p class="date-year" id="d-year"></p>
+    </div>
+    <div class="days-grid" id="days-grid"></div>
+    <div class="feedback" id="fb-cal">&nbsp;</div>
+    <button class="next-btn" onclick="calNext()">Nouvelle date →</button>
+    <details class="settings">
+      <summary>Réglages</summary>
+      <div class="settings-body">
+        <div class="setting-row">
+          <label>Année min</label>
+          <input type="range" id="yr-from" min="1800" max="2020" step="10" value="1950">
+          <span id="yr-from-lbl">1950</span>
+        </div>
+        <div class="setting-row">
+          <label>Année max</label>
+          <input type="range" id="yr-to" min="1810" max="2030" step="10" value="2030">
+          <span id="yr-to-lbl">2030</span>
+        </div>
+      </div>
+    </details>
   </div>
 
-  <div class="days-grid" id="days-grid"></div>
-
-  <div class="feedback" id="feedback">&nbsp;</div>
-
-  <button class="next-btn" id="next-btn">Nouvelle date →</button>
-
-  <details class="settings" id="settings">
-    <summary>Réglages</summary>
-    <div class="settings-body">
-      <div class="setting-row">
-        <label>Année min</label>
-        <input type="range" id="yr-from" min="1800" max="2020" step="10" value="1950">
-        <span id="yr-from-lbl">1950</span>
-      </div>
-      <div class="setting-row">
-        <label>Année max</label>
-        <input type="range" id="yr-to" min="1810" max="2030" step="10" value="2030">
-        <span id="yr-to-lbl">2030</span>
-      </div>
+  <!-- ═══ MODULE 2 : Racine cubique ═══ -->
+  <div id="mod-cube" class="hidden">
+    <div class="q-card" id="cube-card">
+      <p class="q-prompt">Quelle est la racine cubique&nbsp;?</p>
+      <p class="cube-number" id="cube-display">—</p>
+      <p class="cube-sup" id="cube-hint"></p>
     </div>
-  </details>
+    <div class="cube-input-row">
+      <input type="number" class="cube-input" id="cube-input" placeholder="?" min="10" max="99" autocomplete="off">
+      <button class="check-btn" onclick="cubeCheck()">Valider ↵</button>
+    </div>
+    <div class="feedback" id="fb-cube">&nbsp;</div>
+    <button class="next-btn" onclick="cubeNext()">Nouveau nombre →</button>
+    <details class="settings">
+      <summary>Réglages</summary>
+      <div class="settings-body">
+        <div class="setting-row">
+          <label>Min</label>
+          <input type="range" id="cube-min" min="10" max="90" step="1" value="10">
+          <span id="cube-min-lbl">10</span>
+        </div>
+        <div class="setting-row">
+          <label>Max</label>
+          <input type="range" id="cube-max" min="11" max="99" step="1" value="99">
+          <span id="cube-max-lbl">99</span>
+        </div>
+        <div class="setting-row">
+          <label>Aide</label>
+          <input type="range" id="cube-hint-lvl" min="0" max="2" step="1" value="0">
+          <span id="cube-hint-lbl">aucune</span>
+        </div>
+      </div>
+    </details>
+  </div>
 
-</div>
+</div><!-- /container -->
 
 <script>
-const JOURS_COURT = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
-const JOURS_LONG  = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
-const MOIS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
-
+/* ─────────────────────────────────────────
+   SHARED STATE
+───────────────────────────────────────── */
 let score = 0, streak = 0, best = 0, total = 0;
-let currentDay = -1, answered = false;
-
 const elScore    = document.getElementById('score');
 const elStreak   = document.getElementById('streak');
 const elBest     = document.getElementById('best');
 const elProgress = document.getElementById('progress');
-const elFeedback = document.getElementById('feedback');
-const elDateCard = document.getElementById('date-card');
-const elDay      = document.getElementById('d-day');
-const elMonth    = document.getElementById('d-month');
-const elYear     = document.getElementById('d-year');
-const elNext     = document.getElementById('next-btn');
-const grid       = document.getElementById('days-grid');
-const yrFrom     = document.getElementById('yr-from');
-const yrTo       = document.getElementById('yr-to');
-const yrFromLbl  = document.getElementById('yr-from-lbl');
-const yrToLbl    = document.getElementById('yr-to-lbl');
-
-yrFrom.addEventListener('input', () => { yrFromLbl.textContent = yrFrom.value; });
-yrTo.addEventListener('input',   () => { yrToLbl.textContent   = yrTo.value; });
-
-// Build day buttons
-JOURS_COURT.forEach((j, i) => {
-  const btn = document.createElement('button');
-  btn.className = 'day-btn';
-  btn.textContent = j;
-  btn.addEventListener('click', () => answer(i, btn));
-  grid.appendChild(btn);
-});
-
-function randomDate() {
-  const yMin = parseInt(yrFrom.value);
-  const yMax = parseInt(yrTo.value);
-  const y = yMin + Math.floor(Math.random() * (yMax - yMin + 1));
-  const m = Math.floor(Math.random() * 12);
-  const d = 1 + Math.floor(Math.random() * new Date(y, m + 1, 0).getDate());
-  return new Date(y, m, d);
-}
-
-function newQuestion() {
-  answered = false;
-  elFeedback.textContent = '\u00a0';
-  elFeedback.className = 'feedback';
-  elDateCard.classList.remove('active');
-  grid.querySelectorAll('.day-btn').forEach(b => {
-    b.className = 'day-btn';
-    b.disabled = false;
-  });
-
-  const date = randomDate();
-  currentDay = date.getDay();
-  elDay.textContent   = date.getDate();
-  elMonth.textContent = MOIS[date.getMonth()];
-  elYear.textContent  = date.getFullYear();
-
-  elDay.classList.remove('pop');
-  void elDay.offsetWidth;
-  elDay.classList.add('pop');
-
-  setTimeout(() => elDateCard.classList.add('active'), 50);
-}
 
 function flashEl(el) {
-  el.classList.remove('flash');
-  void el.offsetWidth;
-  el.classList.add('flash');
+  el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
 }
-
-function answer(idx, btn) {
-  if (answered) return;
-  answered = true;
+function recordAnswer(correct) {
   total++;
-
-  grid.querySelectorAll('.day-btn').forEach(b => b.disabled = true);
-
-  if (idx === currentDay) {
-    btn.className = 'day-btn correct';
-    score++;
-    streak++;
+  if (correct) {
+    score++; streak++;
     if (streak > best) { best = streak; elBest.textContent = best; flashEl(elBest); }
-    elFeedback.innerHTML = '✓ &nbsp;Correct !';
-    elFeedback.className = 'feedback ok';
   } else {
-    btn.className = 'day-btn wrong';
     streak = 0;
-    grid.querySelectorAll('.day-btn')[currentDay].className = 'day-btn reveal';
-    elFeedback.innerHTML = '✗ &nbsp;C\'était&nbsp;<strong>' + JOURS_LONG[currentDay] + '</strong>';
-    elFeedback.className = 'feedback ko';
   }
-
   elScore.textContent  = score;
   elStreak.textContent = streak;
   flashEl(elScore);
-
-  const pct = total > 0 ? Math.round((score / total) * 100) : 0;
-  elProgress.style.width = pct + '%';
+  elProgress.style.width = (total > 0 ? Math.round(score / total * 100) : 0) + '%';
 }
 
-elNext.addEventListener('click', newQuestion);
-newQuestion();
+/* ─────────────────────────────────────────
+   MODULE SWITCHING
+───────────────────────────────────────── */
+let currentModule = 'cal';
+function switchModule(mod) {
+  currentModule = mod;
+  document.getElementById('mod-cal').classList.toggle('hidden',  mod !== 'cal');
+  document.getElementById('mod-cube').classList.toggle('hidden', mod !== 'cube');
+  document.getElementById('tab-cal').classList.toggle('active',  mod === 'cal');
+  document.getElementById('tab-cube').classList.toggle('active', mod === 'cube');
+  // reset scores per module
+  score = 0; streak = 0; best = 0; total = 0;
+  elScore.textContent = elStreak.textContent = elBest.textContent = '0';
+  elProgress.style.width = '0%';
+  if (mod === 'cal')  calNext();
+  if (mod === 'cube') cubeNext();
+}
+
+/* ─────────────────────────────────────────
+   MODULE 1 — JOUR DE LA SEMAINE
+───────────────────────────────────────── */
+const JOURS_COURT = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+const JOURS_LONG  = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+const MOIS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+
+let calDay = -1, calAnswered = false;
+
+const grid      = document.getElementById('days-grid');
+const fbCal     = document.getElementById('fb-cal');
+const dateCard  = document.getElementById('date-card');
+const yrFrom    = document.getElementById('yr-from');
+const yrTo      = document.getElementById('yr-to');
+
+yrFrom.addEventListener('input', () => { document.getElementById('yr-from-lbl').textContent = yrFrom.value; });
+yrTo.addEventListener('input',   () => { document.getElementById('yr-to-lbl').textContent   = yrTo.value; });
+
+JOURS_COURT.forEach((j, i) => {
+  const btn = document.createElement('button');
+  btn.className = 'day-btn'; btn.textContent = j;
+  btn.addEventListener('click', () => calAnswer(i, btn));
+  grid.appendChild(btn);
+});
+
+function calNext() {
+  calAnswered = false;
+  fbCal.textContent = '\u00a0'; fbCal.className = 'feedback';
+  dateCard.classList.remove('active');
+  grid.querySelectorAll('.day-btn').forEach(b => { b.className = 'day-btn'; b.disabled = false; });
+
+  const yMin = parseInt(yrFrom.value), yMax = parseInt(yrTo.value);
+  const y = yMin + Math.floor(Math.random() * (yMax - yMin + 1));
+  const m = Math.floor(Math.random() * 12);
+  const d = 1 + Math.floor(Math.random() * new Date(y, m + 1, 0).getDate());
+  const date = new Date(y, m, d);
+  calDay = date.getDay();
+
+  const elD = document.getElementById('d-day');
+  elD.textContent = d;
+  document.getElementById('d-month').textContent = MOIS[m];
+  document.getElementById('d-year').textContent  = y;
+  elD.classList.remove('pop'); void elD.offsetWidth; elD.classList.add('pop');
+  setTimeout(() => dateCard.classList.add('active'), 50);
+}
+
+function calAnswer(idx, btn) {
+  if (calAnswered) return;
+  calAnswered = true;
+  grid.querySelectorAll('.day-btn').forEach(b => b.disabled = true);
+  const ok = idx === calDay;
+  btn.className = 'day-btn ' + (ok ? 'correct' : 'wrong');
+  if (!ok) grid.querySelectorAll('.day-btn')[calDay].className = 'day-btn reveal';
+  fbCal.innerHTML = ok
+    ? '✓ &nbsp;Correct !'
+    : '✗ &nbsp;C\'était&nbsp;<strong>' + JOURS_LONG[calDay] + '</strong>';
+  fbCal.className = 'feedback ' + (ok ? 'ok' : 'ko');
+  recordAnswer(ok);
+}
+
+/* ─────────────────────────────────────────
+   MODULE 2 — RACINE CUBIQUE
+───────────────────────────────────────── */
+let cubeRoot = -1, cubeAnswered = false;
+
+const cubeCard    = document.getElementById('cube-card');
+const cubeDisplay = document.getElementById('cube-display');
+const cubeHintEl  = document.getElementById('cube-hint');
+const cubeInput   = document.getElementById('cube-input');
+const fbCube      = document.getElementById('fb-cube');
+const cubeMinRange= document.getElementById('cube-min');
+const cubeMaxRange= document.getElementById('cube-max');
+const cubeHintLvl = document.getElementById('cube-hint-lvl');
+
+cubeMinRange.addEventListener('input', () => { document.getElementById('cube-min-lbl').textContent = cubeMinRange.value; });
+cubeMaxRange.addEventListener('input', () => { document.getElementById('cube-max-lbl').textContent = cubeMaxRange.value; });
+cubeHintLvl.addEventListener('input', () => {
+  const labels = ['aucune', 'chiffre des unités', 'chiffre des unités + centaine'];
+  document.getElementById('cube-hint-lbl').textContent = labels[parseInt(cubeHintLvl.value)];
+});
+
+// Press Enter to validate
+cubeInput.addEventListener('keydown', e => { if (e.key === 'Enter') cubeCheck(); });
+
+function cubeNext() {
+  cubeAnswered = false;
+  fbCube.textContent = '\u00a0'; fbCube.className = 'feedback';
+  cubeInput.value = '';
+  cubeInput.className = 'cube-input';
+  cubeInput.disabled = false;
+  cubeCard.classList.remove('active');
+
+  const cMin = parseInt(cubeMinRange.value);
+  const cMax = parseInt(cubeMaxRange.value);
+  cubeRoot = cMin + Math.floor(Math.random() * (cMax - cMin + 1));
+  const cube = cubeRoot * cubeRoot * cubeRoot;
+
+  cubeDisplay.classList.remove('pop'); void cubeDisplay.offsetWidth; cubeDisplay.classList.add('pop');
+  cubeDisplay.textContent = cube.toLocaleString('fr-FR');
+
+  // Hint
+  const lvl = parseInt(cubeHintLvl.value);
+  if (lvl === 0) {
+    cubeHintEl.textContent = '';
+  } else if (lvl === 1) {
+    const units = cubeRoot % 10;
+    const cubeUnits = [0,1,8,7,4,5,6,3,2,9][units];
+    cubeHintEl.textContent = 'unité du cube → ' + cubeUnits + ' ⟹ unité de la racine → ' + units;
+  } else if (lvl === 2) {
+    const units = cubeRoot % 10;
+    const cubeUnits = [0,1,8,7,4,5,6,3,2,9][units];
+    const hundreds = Math.floor(cube / 1000000);
+    cubeHintEl.textContent = 'unité → ' + cubeUnits + ' · millions → ' + hundreds;
+  }
+
+  setTimeout(() => cubeCard.classList.add('active'), 50);
+  cubeInput.focus();
+}
+
+function cubeCheck() {
+  if (cubeAnswered) return;
+  const val = parseInt(cubeInput.value);
+  if (isNaN(val)) { cubeInput.focus(); return; }
+  cubeAnswered = true;
+  cubeInput.disabled = true;
+  const ok = val === cubeRoot;
+  cubeInput.className = 'cube-input ' + (ok ? 'ok' : 'ko');
+  fbCube.innerHTML = ok
+    ? '✓ &nbsp;Correct ! &nbsp;<span style="color:var(--text-dim);font-size:13px;">∛' + (cubeRoot**3).toLocaleString('fr-FR') + ' = ' + cubeRoot + '</span>'
+    : '✗ &nbsp;La réponse était <strong>' + cubeRoot + '</strong>';
+  fbCube.className = 'feedback ' + (ok ? 'ok' : 'ko');
+  recordAnswer(ok);
+}
+
+/* ─────────────────────────────────────────
+   INIT
+───────────────────────────────────────── */
+calNext();
 </script>
 </body>
 </html>
