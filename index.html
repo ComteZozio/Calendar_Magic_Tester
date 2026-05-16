@@ -85,7 +85,7 @@
   /* Module tabs */
   .tabs {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 6px;
     margin-bottom: 1.5rem;
     animation: fadeUp 0.5s 0.03s ease both;
@@ -285,6 +285,88 @@
   .cube-input.ok    { border-color: var(--green); background: var(--green-dim); color: var(--green); }
   .cube-input.ko    { border-color: var(--red);   background: var(--red-dim);   color: var(--red); }
 
+  /* --- MODULE 3 : Pâques --- */
+  .easter-year {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 3.8rem;
+    font-weight: 300;
+    color: var(--text);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.15rem;
+  }
+  .easter-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+
+  .easter-input-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    animation: fadeUp 0.5s 0.15s ease both;
+  }
+  .easter-day-input {
+    flex: 1;
+    background: var(--bg2);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    padding: 0.8rem 1rem;
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--text);
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+    -moz-appearance: textfield;
+  }
+  .easter-day-input::-webkit-outer-spin-button,
+  .easter-day-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .easter-day-input:focus { border-color: var(--accent); }
+  .easter-day-input.ok { border-color: var(--green); background: var(--green-dim); color: var(--green); }
+  .easter-day-input.ko { border-color: var(--red);   background: var(--red-dim);   color: var(--red); }
+
+  .easter-month-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 1rem;
+    animation: fadeUp 0.5s 0.18s ease both;
+  }
+  .month-btn {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.65rem 1rem;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.04em;
+  }
+  .month-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+  .month-btn.selected { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+  .month-btn.correct  { border-color: var(--green); color: var(--green); background: var(--green-dim); font-weight: 500; }
+  .month-btn.wrong    { border-color: var(--red);   color: var(--red);   background: var(--red-dim); }
+  .month-btn.reveal   { border-color: var(--green); color: var(--green); background: var(--green-dim); font-weight: 500; }
+  .month-btn:disabled { cursor: default; opacity: 0.7; }
+
+  .easter-hint {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-align: center;
+    margin-top: -0.5rem;
+    margin-bottom: 0.75rem;
+    letter-spacing: 0.06em;
+    min-height: 16px;
+  }
   .check-btn {
     background: transparent;
     border: 1px solid var(--border-strong);
@@ -381,6 +463,7 @@
   <div class="tabs">
     <button class="tab-btn active" id="tab-cal" onclick="switchModule('cal')">📅 &nbsp;Jour de la semaine</button>
     <button class="tab-btn" id="tab-cube" onclick="switchModule('cube')">∛ &nbsp;Racine cubique</button>
+    <button class="tab-btn" id="tab-easter" onclick="switchModule('easter')">🐣 &nbsp;Date de Pâques</button>
   </div>
 
   <!-- Stats (shared) -->
@@ -455,6 +538,47 @@
     </details>
   </div>
 
+  <!-- ═══ MODULE 3 : Pâques ═══ -->
+  <div id="mod-easter" class="hidden">
+    <div class="q-card" id="easter-card">
+      <p class="q-prompt">Quelle est la date de Pâques&nbsp;?</p>
+      <p class="easter-year" id="easter-year-display">—</p>
+      <p class="easter-sub">dimanche de Pâques</p>
+    </div>
+    <div class="easter-input-row">
+      <input type="number" class="easter-day-input" id="easter-day-input"
+             placeholder="jour" min="22" max="25" autocomplete="off">
+      <button class="check-btn" onclick="easterCheck()">Valider ↵</button>
+    </div>
+    <div class="easter-month-row">
+      <button class="month-btn" id="btn-mars"  onclick="easterSelectMonth(3)">Mars</button>
+      <button class="month-btn" id="btn-avril" onclick="easterSelectMonth(4)">Avril</button>
+    </div>
+    <p class="easter-hint" id="easter-hint-text"></p>
+    <div class="feedback" id="fb-easter">&nbsp;</div>
+    <button class="next-btn" onclick="easterNext()">Nouvelle année →</button>
+    <details class="settings">
+      <summary>Réglages</summary>
+      <div class="settings-body">
+        <div class="setting-row">
+          <label>Année min</label>
+          <input type="range" id="easter-yr-from" min="1583" max="2000" step="10" value="1900">
+          <span id="easter-yr-from-lbl">1900</span>
+        </div>
+        <div class="setting-row">
+          <label>Année max</label>
+          <input type="range" id="easter-yr-to" min="1600" max="2100" step="10" value="2050">
+          <span id="easter-yr-to-lbl">2050</span>
+        </div>
+        <div class="setting-row">
+          <label>Aide</label>
+          <input type="range" id="easter-hint-lvl" min="0" max="1" step="1" value="0">
+          <span id="easter-hint-lbl">aucune</span>
+        </div>
+      </div>
+    </details>
+  </div>
+
 </div><!-- /container -->
 
 <script>
@@ -490,16 +614,19 @@ function recordAnswer(correct) {
 let currentModule = 'cal';
 function switchModule(mod) {
   currentModule = mod;
-  document.getElementById('mod-cal').classList.toggle('hidden',  mod !== 'cal');
-  document.getElementById('mod-cube').classList.toggle('hidden', mod !== 'cube');
-  document.getElementById('tab-cal').classList.toggle('active',  mod === 'cal');
-  document.getElementById('tab-cube').classList.toggle('active', mod === 'cube');
+  document.getElementById('mod-cal').classList.toggle('hidden',    mod !== 'cal');
+  document.getElementById('mod-cube').classList.toggle('hidden',   mod !== 'cube');
+  document.getElementById('mod-easter').classList.toggle('hidden', mod !== 'easter');
+  document.getElementById('tab-cal').classList.toggle('active',    mod === 'cal');
+  document.getElementById('tab-cube').classList.toggle('active',   mod === 'cube');
+  document.getElementById('tab-easter').classList.toggle('active', mod === 'easter');
   // reset scores per module
   score = 0; streak = 0; best = 0; total = 0;
   elScore.textContent = elStreak.textContent = elBest.textContent = '0';
   elProgress.style.width = '0%';
-  if (mod === 'cal')  calNext();
-  if (mod === 'cube') cubeNext();
+  if (mod === 'cal')    calNext();
+  if (mod === 'cube')   cubeNext();
+  if (mod === 'easter') easterNext();
 }
 
 /* ─────────────────────────────────────────
@@ -633,6 +760,127 @@ function cubeCheck() {
     ? '✓ &nbsp;Correct ! &nbsp;<span style="color:var(--text-dim);font-size:13px;">∛' + (cubeRoot**3).toLocaleString('fr-FR') + ' = ' + cubeRoot + '</span>'
     : '✗ &nbsp;La réponse était <strong>' + cubeRoot + '</strong>';
   fbCube.className = 'feedback ' + (ok ? 'ok' : 'ko');
+  recordAnswer(ok);
+}
+
+/* ─────────────────────────────────────────
+   MODULE 3 — DATE DE PÂQUES
+   Algorithme de Meeus / Jones / Butcher
+───────────────────────────────────────── */
+function computeEaster(year) {
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31); // 3=mars, 4=avril
+  const day   = ((h + l - 7 * m + 114) % 31) + 1;
+  return { day, month };
+}
+
+let easterYear = -1, easterDay = -1, easterMonth = -1;
+let easterSelectedMonth = 0, easterAnswered = false;
+
+const easterCard       = document.getElementById('easter-card');
+const easterYearDisp   = document.getElementById('easter-year-display');
+const easterDayInput   = document.getElementById('easter-day-input');
+const easterHintText   = document.getElementById('easter-hint-text');
+const fbEaster         = document.getElementById('fb-easter');
+const easterYrFrom     = document.getElementById('easter-yr-from');
+const easterYrTo       = document.getElementById('easter-yr-to');
+const easterHintLvlEl  = document.getElementById('easter-hint-lvl');
+const btnMars          = document.getElementById('btn-mars');
+const btnAvril         = document.getElementById('btn-avril');
+
+easterYrFrom.addEventListener('input', () => { document.getElementById('easter-yr-from-lbl').textContent = easterYrFrom.value; });
+easterYrTo.addEventListener('input',   () => { document.getElementById('easter-yr-to-lbl').textContent   = easterYrTo.value; });
+easterHintLvlEl.addEventListener('input', () => {
+  document.getElementById('easter-hint-lbl').textContent = easterHintLvlEl.value === '0' ? 'aucune' : 'mois affiché';
+  easterUpdateHint();
+});
+easterDayInput.addEventListener('keydown', e => { if (e.key === 'Enter') easterCheck(); });
+
+function easterSelectMonth(m) {
+  if (easterAnswered) return;
+  easterSelectedMonth = m;
+  btnMars.classList.toggle('selected',  m === 3);
+  btnAvril.classList.toggle('selected', m === 4);
+}
+
+function easterUpdateHint() {
+  const lvl = parseInt(easterHintLvlEl.value);
+  if (lvl >= 1 && easterMonth > 0) {
+    easterHintText.textContent = 'Mois : ' + (easterMonth === 3 ? 'mars' : 'avril');
+    if (easterSelectedMonth === 0) easterSelectMonth(easterMonth);
+  } else {
+    easterHintText.textContent = '';
+  }
+}
+
+function easterNext() {
+  easterAnswered = false;
+  easterSelectedMonth = 0;
+  fbEaster.textContent = '\u00a0'; fbEaster.className = 'feedback';
+  easterDayInput.value = ''; easterDayInput.className = 'easter-day-input'; easterDayInput.disabled = false;
+  btnMars.className  = 'month-btn'; btnMars.disabled  = false;
+  btnAvril.className = 'month-btn'; btnAvril.disabled = false;
+  easterCard.classList.remove('active');
+  easterHintText.textContent = '';
+
+  const yMin = parseInt(easterYrFrom.value);
+  const yMax = parseInt(easterYrTo.value);
+  easterYear = yMin + Math.floor(Math.random() * (yMax - yMin + 1));
+  const res = computeEaster(easterYear);
+  easterDay   = res.day;
+  easterMonth = res.month;
+
+  easterYearDisp.classList.remove('pop'); void easterYearDisp.offsetWidth; easterYearDisp.classList.add('pop');
+  easterYearDisp.textContent = easterYear;
+  setTimeout(() => easterCard.classList.add('active'), 50);
+  easterUpdateHint();
+  easterDayInput.focus();
+}
+
+function easterCheck() {
+  if (easterAnswered) return;
+  const dayVal = parseInt(easterDayInput.value);
+  if (isNaN(dayVal) || easterSelectedMonth === 0) {
+    if (isNaN(dayVal)) easterDayInput.focus();
+    else fbEaster.innerHTML = '⚠ Sélectionne mars ou avril';
+    fbEaster.className = 'feedback ko';
+    return;
+  }
+  easterAnswered = true;
+  easterDayInput.disabled = true;
+  btnMars.disabled  = true;
+  btnAvril.disabled = true;
+
+  const dayOk   = dayVal === easterDay;
+  const monthOk = easterSelectedMonth === easterMonth;
+  const ok      = dayOk && monthOk;
+
+  easterDayInput.className = 'easter-day-input ' + (dayOk ? 'ok' : 'ko');
+
+  // Colour month buttons
+  if (easterSelectedMonth === easterMonth) {
+    (easterMonth === 3 ? btnMars : btnAvril).className = 'month-btn correct';
+  } else {
+    (easterSelectedMonth === 3 ? btnMars : btnAvril).className = 'month-btn wrong';
+    (easterMonth === 3 ? btnMars : btnAvril).className = 'month-btn reveal';
+  }
+
+  const correctStr = easterDay + ' ' + (easterMonth === 3 ? 'mars' : 'avril') + ' ' + easterYear;
+  fbEaster.innerHTML = ok
+    ? '✓ &nbsp;Correct ! &nbsp;<span style="color:var(--text-dim);font-size:13px;">' + correctStr + '</span>'
+    : '✗ &nbsp;La réponse était <strong>' + correctStr + '</strong>';
+  fbEaster.className = 'feedback ' + (ok ? 'ok' : 'ko');
   recordAnswer(ok);
 }
 
